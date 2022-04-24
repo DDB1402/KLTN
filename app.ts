@@ -31,9 +31,9 @@ import { socketManager,SocketWithoutAuthenticate } from "./socket";
 import jwt from "jsonwebtoken";
 import { bindSocketData } from "./middlewares/authenticate";
 const app: Express = express();
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "assets")));
-app.use(cors());
 app.use(bodyParser.json());
 app.set(SOCKET_LIST, null);
 require("dotenv").config();
@@ -42,7 +42,7 @@ const server: Server = http.createServer(app);
 const io = new SocketServer(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   },
   // transports: ['websocket']
 

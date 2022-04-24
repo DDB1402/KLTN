@@ -5,7 +5,7 @@ var connection = mysql.createConnection({
   // host: "171.241.46.90",
   host:"14.162.70.35",
   user: "root",
-  password: "",
+  password: "25251325ce0",
   database: "chat_app",
   port: 3306,
   connectTimeout: 30000
