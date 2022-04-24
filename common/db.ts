@@ -8,15 +8,46 @@ var connection = mysql.createConnection({
   password: "",
   database: "chat_app",
   port: 3306,
+  connectTimeout: 30000
 });
-connection.connect((err: mysql.MysqlError) => {
-  if (err) {
-    console.log("Server connect error");
-    console.log(err);
-  } else {
-    console.log("Database established");
-  }
-});
+
+
+function handleDisconnect(){
+  console.log("host: 14.162.70.35");
+  console.log("user: root");
+  
+  connection = mysql.createConnection({
+    // host: "171.241.75.149",
+    host:"14.162.70.35",
+    user: "root",
+    password: "",
+    database: "chat_app",
+    port: 3306,
+    connectTimeout: 30000
+  });
+
+  connection.connect((err: mysql.MysqlError) => {
+    if (err) {
+      console.log("Server connect error");
+      console.log(err);
+      setTimeout(handleDisconnect,1000);
+    } else {
+      console.log("Database established");
+    }
+  });
+
+  connection.on('error', function(err) {
+    console.log('db error', err);
+    if(err.code === 'PROTOCOL_CONNECTION_LOST') { 
+      handleDisconnect();                         
+    } else {                                      
+      console.log(err);
+                                        
+    }
+  });
+}
+
+handleDisconnect()
 
 export default connection;
 // const options = {
