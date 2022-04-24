@@ -2,10 +2,10 @@ import axios from "axios";
 import mysql, { Connection, Pool } from "mysql";
 import { HOST_NAME } from "./constants";
 var connection = mysql.createConnection({
-  host: "171.241.46.90",
-  // host:"localhost",
+  // host: "171.241.46.90",
+  host:"14.162.70.35",
   user: "root",
-  password: "huyhoang10032000@gmail.com",
+  password: "",
   database: "chat_app",
   port: 3306,
 });
