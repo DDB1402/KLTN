@@ -3,9 +3,9 @@ import mysql, { Connection, Pool } from "mysql";
 import { HOST_NAME } from "./constants";
 var connection = mysql.createConnection({
   // host: "171.241.46.90",
-  host:"14.162.70.35",
-  user: "root",
-  password: "25251325ce0",
+  host:"database-1.c3ohs9lymx2q.us-west-1.rds.amazonaws.com",
+  user: "admin",
+  password: "12345678",
   database: "chat_app",
   port: 3306,
   connectTimeout: 30000
@@ -13,14 +13,14 @@ var connection = mysql.createConnection({
 
 
 function handleDisconnect(){
-  console.log("host: 14.162.70.35");
-  console.log("user: root");
+  console.log("database-1.c3ohs9lymx2q.us-west-1.rds.amazonaws.com");
+  console.log("user: admin");
   
   connection = mysql.createConnection({
     // host: "171.241.75.149",
-    host:"14.162.70.35",
-    user: "root",
-    password: "25251325ce0",
+    host:"database-1.c3ohs9lymx2q.us-west-1.rds.amazonaws.com",
+    user: "admin",
+    password: "12345678",
     database: "chat_app",
     port: 3306,
     connectTimeout: 30000
@@ -69,7 +69,7 @@ export default connection;
 
 //   connection= mysql.createConnection({
 //     host:ip,
-//     user: "root",
+//     user: "admin",
 //     password: "",
 //     database: "chat_app",
 //     port: 3306,
@@ -117,8 +117,8 @@ export default connection;
 // let pool = mysql.createPool({
 //   connectionLimit: 1000,
 //   host: "171.241.46.90",
-//   // host:"localhost",
-//   user: "root",
+//   // host:"database-1.c3ohs9lymx2q.us-west-1.rds.amazonaws.com",
+//   user: "admin",
 //   password: "huyhoang10032000@gmail.com",
 //   database: "chat_app",
 //   port: 3306,
