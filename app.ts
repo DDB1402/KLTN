@@ -44,7 +44,7 @@ const io = new SocketServer(server, {
     origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   },
-  // transports: ['websocket']
+  transports: ['websocket']
 
 });
 // io.engine.on("headers", (headers:IncomingHttpHeaders, req:Request) => {
@@ -83,7 +83,8 @@ io.sockets.on("connection", (socket:Socket) => {
   //     );
   //   });
   // });
-
+    console.log("client connected");
+    
 
   socket.once(SOCKET_ON_ACTIONS.ON_AUTHENTICATE, (data) => {   
     jwt.verify(
