@@ -2,7 +2,7 @@ const serverAddress = "171.241.113.240";
 const iconFolder = "/icon/";
 const imageFolder = "/images/";
 const DB_ERROR = "DB error";
-const HOST_NAME = "socketservercn11.ddns.net";
+const HOST_NAME = "backendchatappkltn.ddns.net";
 
 enum DEL_FLAG {
   VALID = 0,
