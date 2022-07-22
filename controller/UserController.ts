@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 import {
   BAD_REQUEST,
   DB_ERROR,
@@ -138,14 +139,17 @@ export class UserController {
     };
 
     Object.keys(updatePayload).map((key: string) => {
-      if (!updatePayload[key]) delete updatePayload[key];
+      if (!updatePayload[key] || String(updatePayload[key]).length === 0) delete updatePayload[key];
     });
+    
+    if (updatePayload.password) {
+      updatePayload.password = await bcrypt.hash(updatePayload.password, 10);
+    }
 
     if (Object.keys(updatePayload).length === 0) {
       throwNormalError("Need at least 1 field", next);
       return;
     }
-    console.log(updatePayload);
     
     try {
       let result: OkPacket = await this.UserDao.updateUser({
