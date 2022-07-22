@@ -35,6 +35,7 @@ userRouter.post(
 );
 
 userRouter.get("/getUserById/:id",verifyToken,new UserController().getUserById);
-
-
+userRouter.get("/users", new UserController().getAllUser);
+userRouter.post("/lock/:id", new UserController().lockUser);
+userRouter.post("/unLock/:id", new UserController().unLockUser);
 export default userRouter;

@@ -8,11 +8,11 @@ export class AuthenticationDao extends BaseDao {
     super();
   }
 
-  public login(email: string, password: string) {
+  public login(email: string) {
     return new Promise<User | null>((resolve, reject) => {
       this.db.query(
-        `SELECT * FROM user WHERE email=? AND password=? and delFlag=${DEL_FLAG.VALID} LIMIT 1`,
-        [email, password],
+        `SELECT * FROM user WHERE email=? and delFlag=${DEL_FLAG.VALID} LIMIT 1`,
+        [email],
         (err, result) => {
           if (err) return reject(err);
           if (result.length === 0) {

@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { AuthenticationDao } from "../Dao/AuthenticationDao";
 import { DecodedUser, User } from "../models/User";
 import { Request, Response, NextFunction } from "express";
@@ -45,17 +46,21 @@ export class AuthenticationController {
 
     try {
       const user: User | null = await this.authenticationDao.login(
-        email,
-        password
+        email
       );
       if (user === null)
         res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
       else {
-        const { password, ...userInfo } = user;
-        res.json({
-          accessToken: generateAccessToken({ ...userInfo }),
-          refreshToken: generateRefreshToken({ ...userInfo }),
-        });
+        const { ...userInfo } = user;
+        const comparePassword = await bcrypt.compare(password, user.password);
+        if (comparePassword) {
+          res.json({
+            accessToken: generateAccessToken({ ...userInfo }),
+            refreshToken: generateRefreshToken({ ...userInfo }),
+          });
+        } else {
+          res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
+        }
       }
     } catch (error) {
       console.log(error);      
@@ -98,9 +103,10 @@ export class AuthenticationController {
           }
         } catch (error) {}
 
+        const hashedPassword = await bcrypt.hash(password, 10);
         const insertRecord = await this.authenticationDao.signup({
           email,
-          password,
+          password: hashedPassword,
           phone,
           name,
           avatar,

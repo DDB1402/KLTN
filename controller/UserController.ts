@@ -28,6 +28,9 @@ export class UserController {
     this.viewRelationshipStatus = this.viewRelationshipStatus.bind(this);
     this.editUser = this.editUser.bind(this);
     this.getUserById=this.getUserById.bind(this);
+    this.getAllUser = this.getAllUser.bind(this);
+    this.lockUser = this.lockUser.bind(this);
+    this.unLockUser = this.unLockUser.bind(this);
   }
 
   public async getUserFriend(req: Request, res: Response, next: NextFunction) {
@@ -142,7 +145,8 @@ export class UserController {
       throwNormalError("Need at least 1 field", next);
       return;
     }
-
+    console.log(updatePayload);
+    
     try {
       let result: OkPacket = await this.UserDao.updateUser({
         ...updatePayload,
@@ -151,6 +155,41 @@ export class UserController {
       const newUser=await this.UserDao.getCurrentUser(userInfo.id_user.toString());
       res.json({ data: newUser });
     } catch (error) {
+      throwHttpError(DB_ERROR, BAD_REQUEST, next);
+    }
+  }
+
+  public async getAllUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await this.UserDao.getAllUser();
+      res.json({ data: result });
+    } catch (err) {
+      console.log(err);
+      
+      throwHttpError(DB_ERROR, BAD_REQUEST, next);
+    }
+  }
+
+  public async lockUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {id} = req.params;
+      const result = await this.UserDao.lockUser(id);
+      res.json({ data: result });
+    } catch (err) {
+      console.log(err);
+      
+      throwHttpError(DB_ERROR, BAD_REQUEST, next);
+    }
+  }
+
+  public async unLockUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {id} = req.params;
+      const result = await this.UserDao.unLockUser(id);
+      res.json({ data: result });
+    } catch (err) {
+      console.log(err);
+      
       throwHttpError(DB_ERROR, BAD_REQUEST, next);
     }
   }
