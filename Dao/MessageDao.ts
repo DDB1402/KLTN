@@ -29,10 +29,12 @@ export class MessageDao extends BaseDao {
 
   public insertNewImageMessage(newMessage: IInsertImageMessage) {
     return new Promise<OkPacket>((resolve, reject) => {
-      const { url, id_user, id_conversation } = newMessage;
+      const { url, id_user, id_conversation, type, content } = newMessage;
       this.db.query(
-        `INSERT INTO message(id_user,id_conversation,url,createAt,type) VALUES(?,?,?,now(),${MESSAGE_TYPE.IMAGE})`,
-        [id_user, id_conversation, url],
+        `INSERT INTO message(content,id_user,id_conversation,url,createAt,type) VALUES(?,?,?,?,now(),${
+          type || MESSAGE_TYPE.IMAGE
+        })`,
+        [content, id_user, id_conversation, url],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -58,7 +60,7 @@ export class MessageDao extends BaseDao {
   public insertMultipleImageMessage(listImageInfo: any[][]) {
     return new Promise<OkPacket>((resolve, reject) => {
       this.db.query(
-        `INSERT INTO message(id_user,id_conversation,type,url,createAt) VALUES ?`,
+        `INSERT INTO message(id_user,id_conversation,type,url,createAt,content) VALUES ?`,
         [listImageInfo],
         (err, result) => {
           if (err) reject(err);
@@ -83,7 +85,7 @@ LEFT JOIN icon ON message.id_icon=icon.id_icon ORDER BY message.id_message DESC;
         (err, result) => {
           if (err) reject(err);
 
-          const list:IQueryMessage[] = result.map((queryMessage: any) =>
+          const list: IQueryMessage[] = result.map((queryMessage: any) =>
             generateMessage({
               id_message: queryMessage.id_message,
               content: queryMessage.content,

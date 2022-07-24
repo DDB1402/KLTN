@@ -116,7 +116,7 @@ io.sockets.on("connection", (socket:Socket) => {
       socket.emit(SOCKET_EMIT_ACTIONS.AUTHEN_FAIL);
       socket.disconnect();
     }
-  },1000)}
+  },5000)}
 );
 
 app.use("/upload", uploadRouter);

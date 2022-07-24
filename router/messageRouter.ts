@@ -2,7 +2,7 @@ import { MessageController } from "../controller/MessageController";
 import express from "express";
 import multer from "multer";
 import { verifyToken } from "../middlewares/authenticate";
-import { imageUpload } from "../common/multer";
+import { imageUpload,fileUpload } from "../common/multer";
 import { handleUploadFile } from "../common/multer";
 import { validateMessageInput } from "../middlewares/message";
 const messageRouter = express.Router();
@@ -20,6 +20,16 @@ messageRouter.post(
       maxCount: 100,
     },
   ]),
+//   fileUpload.fields([
+// 	{
+// 		name: "singleFile",
+// 		maxCount: 1,
+// 	  },
+// 	  {
+// 		name: "multipleFile",
+// 		maxCount: 100,
+// 	  },
+//   ]),
   handleUploadFile,
   validateMessageInput,
   new MessageController().insertNewMessage

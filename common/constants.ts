@@ -74,6 +74,8 @@ enum MESSAGE_TYPE {
   ICON = 2,
   VIDEO = 3,
   TEXT_AND_IMAGE = 4,
+  FILE= 5,
+  TEXT_AND_FILE= 6,
 }
 enum MESSAGE_STATUS {
   NORMAL = 0,

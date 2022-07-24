@@ -52,6 +52,8 @@ export class MessageController {
     this.insertNewMessage = this.insertNewMessage.bind(this);
     this.getMesssages = this.getMesssages.bind(this);
     this.insertIconMessage = this.insertIconMessage.bind(this);
+    this.insertFileMessage = this.insertFileMessage.bind(this);
+    this.insertTextAndFileMessage = this.insertTextAndFileMessage.bind(this);
   }
 
   private emitMessage = (
@@ -135,6 +137,12 @@ export class MessageController {
         break;
       case MESSAGE_TYPE.TEXT_AND_IMAGE.toString():
         await this.insertTextAndMessage(req, res, next, listUser);
+        break;
+      case MESSAGE_TYPE.FILE.toString():
+        await this.insertFileMessage(req, res, next, listUser);
+        break;
+      case MESSAGE_TYPE.TEXT_AND_FILE.toString():
+        await this.insertTextAndFileMessage(req, res, next, listUser);
         break;
 
       default:
@@ -251,6 +259,8 @@ export class MessageController {
               url: imageLink,
               id_user: userInfo.id_user.toString(),
               id_conversation,
+              type,
+              content: null,
             });
           data.push(
             generateMessage({
@@ -319,6 +329,244 @@ export class MessageController {
             creator: userInfo,
             default: "New image",
             data,
+          },
+          data
+        );
+        // else
+        res.json({ data, id_preview });
+      }
+    } catch (err) {
+      throwHttpError(DB_ERROR, BAD_REQUEST, next);
+    }
+  }
+
+  public async insertFileMessage(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+    listUser: UserInConversation[]
+  ) {
+    let listImageLink: string[] | null = null;
+    let imageLink = null;
+    let data: IQueryMessage[] = [];
+    const { type, id_conversation = "", id_preview } = req.body;
+    const cachePrefix = CACHE_PREFIX.MESSAGE + id_conversation;
+    const userInfo: DecodedUser = res.locals.decodeToken;
+    try {
+      const listImage: IconInfo[] = res.locals.fileInfo;
+      if (listImage) {
+        if (listImage.length === 1) {
+          let fileName = res.locals.fileInfo[0].newName || "";
+          imageLink = await uploadSingle({
+            file: res.locals.fileInfo[0].originalFile,
+            newName: fileName,
+          });
+
+          const dbResult: OkPacket =
+            await this.messageDao.insertNewImageMessage({
+              content: fileName,
+              url: imageLink,
+              id_user: userInfo.id_user.toString(),
+              id_conversation,
+              type: MESSAGE_TYPE.FILE,
+            });
+
+          data.push(
+            generateMessage({
+              id_message: dbResult.insertId.toString(),
+              type: MESSAGE_TYPE.FILE,
+              url: imageLink,
+              content: fileName,
+              id_user: userInfo.id_user.toString(),
+              userInfo,
+              delFlag: DEL_FLAG.VALID,
+              id_conversation,
+              createAt: new Date().toISOString(),
+            })
+          );
+        } else if (listImage.length > 1) {
+          listImageLink = await uploadMultipleImage(
+            listImage.map((image: IconInfo) => ({
+              file: image.originalFile,
+              newName: image.newName,
+            }))
+          );
+
+          const insertData = forBulkInsert(
+            listImageLink.map((link: string, index) => ({
+              id_conversation,
+              type: MESSAGE_TYPE.FILE,
+              link,
+              createAt: formatDate(new Date()),
+              content: listImage[index].newName,
+            })),
+            userInfo.id_user.toString()
+          );
+
+          const dbResult: OkPacket =
+            await this.messageDao.insertMultipleImageMessage(insertData);
+
+          for (let i = 0; i < dbResult.affectedRows; i++) {
+            data.push(
+              generateMessage({
+                id_message: (
+                  parseInt(dbResult.insertId.toString()) + i
+                ).toString(),
+                content: listImage[i].newName,
+                type: MESSAGE_TYPE.FILE,
+                url: listImageLink[i],
+                id_user: userInfo.id_user.toString(),
+                userInfo,
+                delFlag: DEL_FLAG.VALID,
+                id_conversation,
+                createAt: new Date().toISOString(),
+              })
+            );
+          }
+        }
+
+        this.emitMessage(
+          req,
+          listUser,
+          userInfo,
+          id_conversation,
+          {
+            type: MESSAGE_TYPE.FILE,
+            notificationType: NOTIFICATION_TYPE.NEW_MESSAGE,
+            creator: userInfo,
+            default: "New file",
+            data,
+          },
+          data
+        );
+        // else
+        res.json({ data, id_preview });
+      }
+    } catch (err) {
+		console.log(err);		
+      throwHttpError(DB_ERROR, BAD_REQUEST, next);
+    }
+  }
+
+  public async insertTextAndFileMessage(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+    listUser: UserInConversation[]
+  ) {
+    let listImageLink: string[] | null = null;
+    let imageLink = null;
+    let data: IQueryMessage[] = [];
+    const { type, id_conversation = "", content, id_preview } = req.body;
+    const cachePrefix = CACHE_PREFIX.MESSAGE + id_conversation;
+    const userInfo: DecodedUser = res.locals.decodeToken;
+    const listImage: IconInfo[] = res.locals.fileInfo;
+    try {
+      // Message handle
+      const dbMessageResult: OkPacket =
+        await this.messageDao.insertNewTextMessage({
+          content,
+          id_conversation,
+          id_user: userInfo.id_user.toString(),
+        });
+
+      data.push(
+        generateMessage({
+          id_message: dbMessageResult.insertId.toString(),
+          type: MESSAGE_TYPE.TEXT,
+          content: content,
+          id_user: userInfo.id_user.toString(),
+          userInfo,
+          delFlag: DEL_FLAG.VALID,
+          id_conversation,
+          createAt: new Date().toISOString(),
+        })
+      );
+
+      // Image handle
+      if (listImage) {
+        if (listImage.length === 1) {
+          imageLink = await uploadSingle({
+            file: res.locals.fileInfo[0].originalFile,
+            newName: res.locals.fileInfo[0].newName,
+          });
+
+          const dbResult: OkPacket =
+            await this.messageDao.insertNewImageMessage({
+              url: imageLink,
+              id_user: userInfo.id_user.toString(),
+              id_conversation,
+              type: MESSAGE_TYPE.FILE,
+              content: res.locals.fileInfo[0].newName,
+            });
+          data.push(
+            generateMessage({
+              id_message: dbResult.insertId.toString(),
+              type: MESSAGE_TYPE.FILE,
+              url: imageLink,
+              createAt: new Date().toISOString(),
+              userInfo,
+              delFlag: DEL_FLAG.VALID,
+              id_conversation,
+              id_user: userInfo.id_user.toString(),
+            })
+          );
+        } else if (listImage.length > 1) {
+          listImageLink = await uploadMultipleImage(
+            listImage.map((image: IconInfo) => ({
+              file: image.originalFile,
+              newName: image.newName,
+            }))
+          );
+
+          const insertData = forBulkInsert(
+            listImageLink.map((link: string) => ({
+              id_conversation,
+              type: MESSAGE_TYPE.FILE,
+              link,
+              createAt: formatDate(new Date()),
+            })),
+            userInfo.id_user.toString()
+          );
+
+          const dbResult: OkPacket =
+            await this.messageDao.insertMultipleImageMessage(insertData);
+
+          for (let i = 0; i < dbResult.affectedRows; i++) {
+            data.push(
+              generateMessage({
+                id_message: (
+                  parseInt(dbResult.insertId.toString()) + i
+                ).toString(),
+                type: MESSAGE_TYPE.FILE,
+                url: listImageLink[i],
+                createAt: new Date().toISOString(),
+                userInfo,
+                delFlag: DEL_FLAG.VALID,
+                id_conversation,
+                id_user: userInfo.id_user.toString(),
+              })
+            );
+          }
+        }
+        // set cache
+        MessageCache.set(CACHE_PREFIX.MESSAGE + id_conversation, [
+          ...(MessageCache.get<IQueryMessage[]>(cachePrefix) || []),
+          ...data,
+        ]);
+
+        this.emitMessage(
+          req,
+          listUser,
+          userInfo,
+          id_conversation,
+          {
+            type: MESSAGE_TYPE.TEXT_AND_IMAGE,
+            notificationType: NOTIFICATION_TYPE.NEW_MESSAGE,
+            creator: userInfo,
+            default: "Text and image",
+            data,
+            id_preview,
           },
           data
         );
@@ -454,6 +702,8 @@ export class MessageController {
               url: imageLink,
               id_user: userInfo.id_user.toString(),
               id_conversation,
+              type,
+              content: null,
             });
           data.push(
             generateMessage({
@@ -585,7 +835,7 @@ export class MessageController {
       listMessage = await this.messageDao.getMessageByConversation(
         id_conversation?.toString() || ""
       );
-console.log(listMessage.length);
+      console.log(listMessage.length);
 
       res.json({
         ...Pagination(

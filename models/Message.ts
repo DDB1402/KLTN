@@ -95,16 +95,16 @@ export const generateMessage = (data: ICreateMessage): IQueryMessage => {
       icon_createAt,
       icon_category,
     },
-    _type:type,
+    _type: type,
     ...userInfoRest,
   };
 };
 
-export type IQueryMessage = Omit<Message, "createAt" | "delFlag"|"type"> & {
+export type IQueryMessage = Omit<Message, "createAt" | "delFlag" | "type"> & {
   message_create_at: string;
   message_del_flag: DEL_FLAG;
   icon: IQueryMessageIcon;
-  _type:MESSAGE_TYPE
+  _type: MESSAGE_TYPE;
 } & Omit<DecodedUser, "id_user">;
 
 export interface IInsertTextMessage {
@@ -117,6 +117,8 @@ export interface IInsertImageMessage {
   url: string;
   id_user: string;
   id_conversation: string;
+  type: MESSAGE_TYPE;
+  content:Maybe<null>
 }
 
 export interface IInsertIconMessage {

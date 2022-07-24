@@ -38,11 +38,13 @@ export class ConversationDao extends BaseDao {
 
   public getConversationByUser(id_user: string) {
     return new Promise<ConversationWithCreatorInfo[]>((resolve, reject) => {
+		console.log('user');
       this.db.query(
         `SELECT conversation.*,user.name as creator_name,
         user.email as creator_email,user.avatar as creator_avatar,user.phone as creator_phone,user.sex as creator_sex,
         get_count_message(conversation.id_room) as message_count,get_last_message(conversation.id_room) as last_message,
         get_last_message_type(conversation.id_room) as last_message_type,
+		get_last_message_time(conversation.id_room) as last_message_time,
         get_next_user_name(conversation.id_room,?,conversation.type) as nextUserName,
         get_next_user_avatar(conversation.id_room,?,conversation.type) as nextUserAvatar,
         get_next_user_sex(conversation.id_room,?,conversation.type) as nextUserSex,
