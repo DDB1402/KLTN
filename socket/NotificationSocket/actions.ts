@@ -49,6 +49,14 @@ export const NotificationSocketActions = {
   ) {
     namespace.in(room).emit(SOCKET_EMIT_ACTIONS.EMIT_NOTIFICATION, data);
   },
+  async emitDeleteNotification(
+	namespace:Namespace,
+	room:string,
+    data: ISendNotification
+	// id_deleted_user:string
+  ){
+	namespace.in(room).emit(SOCKET_EMIT_ACTIONS.EMIT_DELETE_USER,data)
+  }
 
 
 

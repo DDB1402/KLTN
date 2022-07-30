@@ -27,6 +27,7 @@ import { Namespace } from "socket.io";
 import { UserLastSeenMessageDao } from "../Dao/UserLastSeenMessageDao";
 import { Maybe } from "yup/lib/types";
 import { UserInConversation } from "../models/UserInConversation";
+import { NotificationSocketActions } from "../socket/NotificationSocket/actions";
 
 export class ConversationController {
   private conversationDao: ConversationDao;
@@ -43,6 +44,7 @@ export class ConversationController {
     this.getConversations = this.getConversations.bind(this);
     this.getConversationById = this.getConversationById.bind(this);
     this.addUsersToConversation = this.addUsersToConversation.bind(this);
+    this.deleteUser = this.deleteUser.bind(this);
   }
 
   public async checkPrivateConversationBetween(
@@ -123,7 +125,7 @@ export class ConversationController {
           newIdRoom.toString()
         );
 
-      if (newConversation) {     
+      if (newConversation) {
         this.emitJoinRoom(req, parseListUser, newConversation);
         const listUserToConversation = [
           ...parseListUser.map((id) =>
@@ -134,7 +136,7 @@ export class ConversationController {
       }
 
       res.json({ newRoom: newConversation });
-    } catch (error) {   
+    } catch (error) {
       throwHttpError(DB_ERROR, BAD_REQUEST, next);
       return;
     }
@@ -148,7 +150,7 @@ export class ConversationController {
     const conversationSocket: Namespace =
       req.app.get(SOCKET_LIST)[SOCKET_NAMESPACE.CONVERSATION];
 
-    if (conversationSocket) {   
+    if (conversationSocket) {
       RoomSocketActions.handleRoomGroup(
         conversationSocket,
         listUser,
@@ -422,6 +424,28 @@ export class ConversationController {
     } catch (error) {
       console.log(error);
 
+      throwHttpError(DB_ERROR, BAD_REQUEST, next);
+    }
+  }
+
+  public async deleteUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const conversationSocket: Namespace =
+        req.app.get(SOCKET_LIST)[SOCKET_NAMESPACE.CONVERSATION];
+      const { id_room, id_deleted_user } = req.body;
+      const user_info: DecodedUser = res.locals.decodeToken;
+
+      await this.userInConversationDao.deleteUserInConversation(
+        id_deleted_user,
+        id_room
+      );
+      await RoomSocketActions.deleteUser(conversationSocket, {
+        id_deleted_user,
+        id_room,
+        sender: user_info,
+      });
+      res.json({ message: "ok", id_room, id_deleted_user });
+    } catch (e) {
       throwHttpError(DB_ERROR, BAD_REQUEST, next);
     }
   }

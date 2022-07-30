@@ -12,7 +12,9 @@ conversationRouter.post("/createPrivateChat",verifyToken,upload.none(),new Conve
 conversationRouter.post("/checkPrivateMessage",verifyToken,new ConversationController().checkPrivateConversationBetween);
 conversationRouter.get("/getConversations",verifyToken,new ConversationController().getConversations)
 conversationRouter.get("/getSpecificConversation/:id_conversation",verifyToken,checkUserExist,new ConversationController().getConversationById);
-conversationRouter.post("/addUsersToConversation",verifyToken,new ConversationController().addUsersToConversation)
+conversationRouter.post("/addUsersToConversation",verifyToken,new ConversationController().addUsersToConversation);
+conversationRouter.post("/deleteUser",verifyToken,new ConversationController().deleteUser);
+
 export default conversationRouter;
 
 

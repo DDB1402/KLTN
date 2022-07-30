@@ -62,6 +62,7 @@ export const RoomSocketActions = {
 
   joinConversation: async (socket: Socket, id_conversation: string) => {
     socket.join(SOCKET_PREFIX.CONVERSATION + id_conversation.toString());
+    // socket.leave()
   },
 
   handleRoomGroup: async (
@@ -129,6 +130,7 @@ export const RoomSocketActions = {
     id_message: string
   ) => {
     const { id_user, avatar, name } = userInfo;
+    // namespace.
     namespace
       .to(SOCKET_PREFIX.CONVERSATION + id_conversation.toString())
       .emit(SOCKET_EMIT_ACTIONS.EMIT_SEEN_MESSAGE, {
@@ -144,10 +146,19 @@ export const RoomSocketActions = {
     namespace: Namespace,
     id_conversation: string,
     data: IEmitMessage
-  ) => {  
+  ) => {
     namespace
       .in(SOCKET_PREFIX.CONVERSATION + id_conversation.toString())
-      .emit(SOCKET_EMIT_ACTIONS.EMIT_MESSAGE, {messageData:data});
+      .emit(SOCKET_EMIT_ACTIONS.EMIT_MESSAGE, { messageData: data });
+  },
+  emitDeleteUserToConversation: (
+    namespace: Namespace,
+    id_conversation: string,
+    data: any
+  ) => {
+    namespace
+      .in(SOCKET_PREFIX.CONVERSATION + id_conversation.toString())
+      .emit(SOCKET_EMIT_ACTIONS.EMIT_DELETE_USER, { data });
   },
 
   emitIsTyping: (
@@ -209,10 +220,32 @@ export const RoomSocketActions = {
   },
 
   handleCallVideoStart(namespace: Namespace, socket: Socket) {
-    return (data: ICallVideoStartData) => {    
-      const { idRoom, callUser,newIdRoom } = data;
-      namespace.in(SOCKET_PREFIX.CONVERSATION + idRoom).emit(SOCKET_EMIT_ACTIONS.EMIT_SOMEONE_CALL,{idRoom, callUser,newIdRoom});
+    return (data: ICallVideoStartData) => {
+      const { idRoom, callUser, newIdRoom } = data;
+      namespace
+        .in(SOCKET_PREFIX.CONVERSATION + idRoom)
+        .emit(SOCKET_EMIT_ACTIONS.EMIT_SOMEONE_CALL, {
+          idRoom,
+          callUser,
+          newIdRoom,
+        });
     };
+  },
+  async deleteUser(namespace: Namespace, data: any) {
+    const { id_deleted_user, id_room, sender } = data;
+    const socketId = userSocket[SOCKET_PREFIX.USER + id_deleted_user];
+    const socketInstance = namespace.sockets.get(socketId);
+    // console.log(socketInstance);
+    if (socketInstance) {
+      await socketInstance.leave(SOCKET_PREFIX.CONVERSATION + id_room);
+      await namespace.adapter.del(
+        socketId,
+        SOCKET_PREFIX.CONVERSATION + id_room
+      );
+    }
+    namespace
+      .in(SOCKET_PREFIX.CONVERSATION + id_room.toString())
+      .emit(SOCKET_EMIT_ACTIONS.EMIT_DELETE_USER, { id_deleted_user, id_room,sender });
   },
 
   // joinRoom(namespace:Namespace,id_user:string,id_conversation:string){

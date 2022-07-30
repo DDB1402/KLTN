@@ -103,12 +103,27 @@ export class UserInConversationDao extends BaseDao {
     return new Promise<boolean>((resolve, reject) => {
       this.db.query(
         `SELECT * FROM user_in_conversation WHERE id_user=? AND id_room=? AND status=${USER_IN_ROOM_STATUS.NORMAL}`,
-        [id_user,id_room],
-        (err, result) => {   
+        [id_user, id_room],
+        (err, result) => {
           if (err) reject(err);
           else {
             if (result.length !== 0) resolve(true);
             else resolve(false);
+          }
+        }
+      );
+    });
+  }
+  deleteUserInConversation(id_user: string, id_room: string) {
+    return new Promise((resolve, reject) => {
+      this.db.query(
+        `UPDATE user_in_conversation SET status=${USER_IN_ROOM_STATUS.DELETED} WHERE id_user=? AND id_room=?`,
+        [id_user, id_room],
+        (err, result) => {
+          if (err) reject(err);
+          if (result.length === 0) reject("Doesnt exist");
+          else {
+            resolve(false);
           }
         }
       );

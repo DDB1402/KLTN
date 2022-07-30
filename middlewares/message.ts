@@ -32,10 +32,9 @@ export const validateMessageInput = async (
   );
 
   if (userInConversation.length === 0) {
-    res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
+    res.status(UNAUTHORIZED).json({ message: "Unauthorized", status: 403 });
     return;
   }
   next();
   // const listUser=await userInConversationDao.
 };
-
