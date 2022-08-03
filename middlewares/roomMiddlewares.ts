@@ -25,7 +25,6 @@ const checkUserExist = async (
         userInfo.id_user.toString(),
         id_conversation || ""
       );
-      
     if (isUserExist) next();
     else res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
   } catch (err) {

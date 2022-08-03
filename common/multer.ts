@@ -123,9 +123,15 @@ export const handleUploadFile = (
 
   // Pass img info forr the next middleware
   const { type } = req.body;
-  if (type === MESSAGE_TYPE.FILE || MESSAGE_TYPE.TEXT_AND_FILE) {
+  if (
+    type?.toString() === MESSAGE_TYPE.FILE.toString() ||
+    type?.toString() === MESSAGE_TYPE.TEXT_AND_FILE?.toString()
+  ) {
     res.locals.fileInfo = iconInfo.length === 0 ? null : iconInfo;
-  } else if (type === MESSAGE_TYPE.IMAGE || MESSAGE_TYPE.TEXT_AND_IMAGE) {
+  } else if (
+    type?.toString() === MESSAGE_TYPE.IMAGE.toString() ||
+    type?.toString() === MESSAGE_TYPE.TEXT_AND_IMAGE.toString()
+  ) {
     res.locals.imageInfo = iconInfo.length === 0 ? null : iconInfo;
   }
 
