@@ -228,7 +228,6 @@ export class MessageController {
         },
       });
     } catch (err) {
-      console.log(err);
       throwHttpError(DB_ERROR, BAD_REQUEST, next);
     }
   }

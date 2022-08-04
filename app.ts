@@ -15,7 +15,7 @@ import { unlinkSync } from "fs";
 import { HttpError } from "./models/HttpError";
 import { CustomValidationError } from "./models/CustomValidationError";
 import logger from "./common/logger";
-import {getCount} from "./apb";
+import { getCount } from "./apb";
 import {
   UNAUTHORIZED,
   INTERNAL_SERVER,
@@ -27,7 +27,7 @@ import {
 } from "./common/constants";
 
 // import { socketVerifyToken } from "./middlewares/authenticate";
-import { socketManager,SocketWithoutAuthenticate } from "./socket";
+import { socketManager, SocketWithoutAuthenticate } from "./socket";
 import jwt from "jsonwebtoken";
 import { bindSocketData } from "./middlewares/authenticate";
 const app: Express = express();
@@ -44,8 +44,7 @@ const io = new SocketServer(server, {
     origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   },
-  transports: ['websocket']
-
+  transports: ["websocket"],
 });
 // io.engine.on("headers", (headers:IncomingHttpHeaders, req:Request) => {
 //     headers["test"] = "789";
@@ -58,15 +57,15 @@ const io = new SocketServer(server, {
 
 // io.use(socketVerifyToken);
 
-
 // io.of("/TEST").on("connection",(socket:Socket)=>{
 //   console.log("d",getCount());
 // })
 
 SocketWithoutAuthenticate(io);
 
-io.sockets.on("connection", (socket:Socket) => {
-  
+io.sockets.on("connection", (socket: Socket) => {
+  console.log("connect");
+
   // const socketList = io._nsps.forEach((nsp) => {
   //   nsp.on("connect", function (socket) {
   //     jwt.verify(
@@ -83,48 +82,55 @@ io.sockets.on("connection", (socket:Socket) => {
   //     );
   //   });
   // });
-    console.log("client connected");
-    
+  console.log("client connected");
 
-  socket.once(SOCKET_ON_ACTIONS.ON_AUTHENTICATE, (data) => {   
+  socket.once(SOCKET_ON_ACTIONS.ON_AUTHENTICATE, (data) => {
     jwt.verify(
       data.token,
       process.env.TOKEN_SECRET as string,
       (err: any, decode: any) => {
         if (err) {
-          console.log(err);
+          //   console.log(err);
+          app.set(SOCKET_LIST, null);
+          socket.emit(SOCKET_EMIT_ACTIONS.AUTHEN_FAIL);
+          socket.disconnect();
         } else {
           socket.data.decode = decode;
+          console.log("decode");
           io._nsps.forEach((nsp) => {
-            nsp.sockets.forEach((_socket) => {           
+            nsp.sockets.forEach((_socket) => {
               if (_socket.id === socket.id) nsp.sockets.set(socket.id, socket);
             });
           });
+          socket.emit(SOCKET_EMIT_ACTIONS.AUTHEN_SUCCESS);
+          const socketList = socketManager(io, socket.data.decode);
+          app.set(SOCKET_LIST, socketList);
         }
       }
     );
   });
 
   // if socket didnt authenticate just disconnect it else call another socket with parse info
-   setTimeout(() => {
-    if (socket.data.decode) {  
-      socket.emit(SOCKET_EMIT_ACTIONS.AUTHEN_SUCCESS);
-      const socketList = socketManager(io, socket.data.decode);
-      app.set(SOCKET_LIST, socketList);
-    } else {
-      app.set(SOCKET_LIST, null);
-      socket.emit(SOCKET_EMIT_ACTIONS.AUTHEN_FAIL);
-      socket.disconnect();
-    }
-  },5000)}
-);
+//   setTimeout(() => {
+//     if (socket.data.decode) {
+//       console.log("authen");
+//       socket.emit(SOCKET_EMIT_ACTIONS.AUTHEN_SUCCESS);
+//       const socketList = socketManager(io, socket.data.decode);
+//       app.set(SOCKET_LIST, socketList);
+//     } else {
+//       app.set(SOCKET_LIST, null);
+//       socket.emit(SOCKET_EMIT_ACTIONS.AUTHEN_FAIL);
+//       socket.disconnect();
+//     }
+//   }, 3000);
+});
 
 app.use("/upload", uploadRouter);
 app.use("/authen", authenticationRouter);
 app.use("/user", userRouter);
 app.use("/conversation", conversationRouter);
-app.use("/message",messageRouter);
-app.use("/notification",notifcationRouter);
+app.use("/message", messageRouter);
+app.use("/notification", notifcationRouter);
 // localhost:300/authen/signup
 
 app.get("/cook", (req, res) => {
@@ -145,7 +151,7 @@ app.use(
         message: err.message,
       });
     } else if (err instanceof CustomValidationError) {
-      console.log(err);         
+      console.log(err);
       res.status(err.status | INTERNAL_SERVER).json({
         message: err.message,
         errors: err,
@@ -159,6 +165,6 @@ app.use(
 );
 
 server.listen(process.env.PORT || 3001, () => {
-  console.log("Hello world",process.env.PORT);
+  console.log("Hello world", process.env.PORT);
 });
 // mysqldump --column-statistics=0 --routines -u root -p  chat_app > filename.sql

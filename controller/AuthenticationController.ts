@@ -62,8 +62,7 @@ export class AuthenticationController {
           res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
         }
       }
-    } catch (error) {
-      console.log(error);      
+    } catch (error) {   
       throwHttpError(DB_ERROR, BAD_REQUEST, next);
     }
   }

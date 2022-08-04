@@ -98,8 +98,6 @@ export class UserController {
       const result = await this.UserDao.getUserInfoById(userInfo.id_user.toString(),id?.toString()||"");   
       res.json({ data: result });
     } catch (err) {
-      console.log(err);
-      
       throwHttpError(DB_ERROR, BAD_REQUEST, next);
     }
   }
@@ -167,9 +165,7 @@ export class UserController {
     try {
       const result = await this.UserDao.getAllUser();
       res.json({ data: result });
-    } catch (err) {
-      console.log(err);
-      
+    } catch (err) {   
       throwHttpError(DB_ERROR, BAD_REQUEST, next);
     }
   }

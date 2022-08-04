@@ -299,8 +299,9 @@ export class NotificationController {
           type: NOTIFICATION_TYPE.FRIEND_REQUEST,
           createAt: new Date().toISOString(),
           data: {
-            idNotifcation: result.insertId,
+            idNotification: result.insertId,
             message,
+			ownerInfo:userInfo
           },
         }
       );
